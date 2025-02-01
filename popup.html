@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Avrae Command Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 10px;
+    }
+
+    input, select, button, textarea {
+      margin: 3px 0;
+      width: 100%;
+      padding: 5px;
+      box-sizing: border-box;
+    }
+
+    .input-group {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+
+    label {
+      font-weight: bold;
+      display: block;
+      margin-top: 10px;
+    }
+
+    .label-group {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+    }
+
+    #stats-options {
+      display: none;
+      margin-top: 10px;
+    }
+
+    .compact-container {
+      display: flex;
+      flex-direction: column;
+      gap: 5px;
+    }
+
+    #health-monster-name {
+      width: 90%;
+    }
+
+    #position-number {
+      width: 50px; /* Reduce width for compact appearance */
+      text-align: center;
+    }
+
+    .radio-group {
+      display: flex;
+      align-items: center;
+      gap: 10px; /* Adjusts spacing between elements */
+    }
+
+    .radio-item {
+      display: flex;
+      align-items: center;
+      gap: 10px; /* Reduces space between radio button and label */
+    }
+
+    #hp-value {
+      width: 80px;
+      text-align: center;
+      margin-left: 10px;
+    }
+
+    .tooltip {
+      position: relative;
+      display: inline-block;
+    }
+
+    .tooltip .tooltiptext {
+      visibility: hidden;
+      width: 140px;
+      background-color: #555;
+      color: #fff;
+      text-align: center;
+      border-radius: 6px;
+      padding: 5px;
+      position: absolute;
+      z-index: 1;
+      bottom: 150%;
+      left: 50%;
+      margin-left: -75px;
+      opacity: 0;
+      transition: opacity 0.3s;
+    }
+
+    .tooltip .tooltiptext::after {
+      content: "";
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      margin-left: -5px;
+      border-width: 5px;
+      border-style: solid;
+      border-color: #555 transparent transparent transparent;
+    }
+
+    .tooltip:hover .tooltiptext {
+      visibility: visible;
+      opacity: 1;
+    }
+
+    .collapsible-container {
+      display: flex;
+      align-items: center;
+      gap: 5px; /* Space between button and label */
+      margin-bottom: 10px;
+    }
+
+    .collapsible-button {
+      background-color: #f1f1f1;
+      border: none;
+      cursor: pointer;
+      font-size: 16px;
+      width: 30px;
+      height: 30px;
+      text-align: center;
+      border-radius: 50%;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      font-weight: bold;
+      transition: background-color 0.3s;
+    }
+
+    .collapsible-button:hover {
+      background-color: #ddd;
+    }
+
+    .collapsible-content {
+      display: none; /* Hidden by default */
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    .tab-container {
+      display: flex;
+      border-bottom: 2px solid #ccc;
+      margin-bottom: 10px;
+    }
+
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 10px;
+      cursor: pointer;
+      font-weight: bold;
+      background-color: #f1f1f1;
+      border: 1px solid #ccc;
+    }
+
+    .tab.active {
+      background-color: #ffffff;
+      border-bottom: 2px solid white;
+    }
+
+    .tab-content {
+      display: none;
+    }
+
+    .tab-content.active {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <h3>Avrae Command Generator</h3>
+
+  <div class="tab-container">
+    <div class="tab active" data-target="monster-generator">Monster Generator</div>
+    <div class="tab" data-target="health-options">Health Options</div>
+    <div class="tab" data-target="combat-options">Combat Options</div>
+  </div>
+
+  <div id="monster-generator" class="tab-content active">
+    <label for="monster-name">Monster Name:</label>
+    <input type="text" id="monster-name" />
+
+    <label for="monster-count">Number of Monsters:</label>
+    <input type="number" id="monster-count" value="1" min="1" />
+
+    <label for="hp-option">HP Options:</label>
+    <select id="hp-option">
+      <option value="defaulthp">Default HP</option>
+      <option value="rollhp" selected="selected">Roll HP</option>
+      <option value="manual">Manual HP</option>
+    </select>
+    <input type="number" id="manual-hp" placeholder="Enter HP" style="display: none;" />
+
+    <label for="group-name">Group Name:</label>
+    <input type="text" id="group-name" />
+
+    <div class="collapsible-container">
+      <button type="button" id="modify-stats-button" class="collapsible-button">+</button>
+      <span>Modify Stats</span>
+    </div>
+    <div id="stats-options" class="collapsible-content">
+      <label for="ac">AC:</label>
+      <input type="number" id="ac" placeholder="Enter AC" />
+    
+      <label for="initiative-bonus">Initiative Bonus:</label>
+      <input type="number" id="initiative-bonus" placeholder="Enter Initiative Bonus" />
+    
+      <div class="radio-group">
+        <div class="radio-item">
+          <input type="radio" id="defaultinit" name="init" value="defaultinit" checked />
+          <label for="defaultinit">Default Initiative</label>
+        </div>
+        <div class="radio-item">
+          <input type="radio" id="advantage" name="init" value="advantage" />
+          <label for="advantage">Advantage Initiative</label>
+        </div>
+        <div class="radio-item">
+          <input type="radio" id="disadvantage" name="init" value="disadvantage" />
+          <label for="disadvantage">Disadvantage Initiative</label>
+        </div>
+      </div>
+    </div>
+    
+
+    <button id="generate-command">Generate Command</button>
+    <textarea id="command-output" readonly style="width: 100%; height: 50px;"></textarea>
+    <!-- The button used to copy the text -->
+    <div class="tooltip">
+      <button id="command-copy-button">
+        <span class="tooltiptext" id="commandtooltip">Copy to clipboard</span>
+        Copy command
+      </button>
+    </div>
+  </div>
+
+  <div id="health-options" class="tab-content">
+    <div class="compact-container">
+      <div class="label-group">
+        <label for="health-monster-name">Monster Name:</label>
+        <label class="health-position-label">Position</label>
+      </div>
+    
+      <div class="input-group">
+        <input type="text" id="health-monster-name" placeholder="Enter Monster Name" />
+    
+        <input 
+          type="number" 
+          id="health-position-number" 
+          placeholder="#" 
+          style="width: 50px; text-align: center;" />
+      </div>
+    </div>
+    
+    <div class="radio-group">
+      <div class="radio-item">
+        <input type="radio" id="damage-radio" name="hitpoints" value="damage-amount" checked />
+        <label for="damage-radio">Damage</label>
+      </div>
+    
+      <div class="radio-item">
+        <input type="radio" id="heal-radio" name="hitpoints" value="heal-amount" />
+        <label for="heal-radio">Heal</label>
+      </div>
+    
+      <input type="number" id="hp-value" placeholder="HP" />
+    </div>
+    
+    <button id="apply-health">Apply Health</button>
+    <textarea id="apply-health-output" readonly></textarea>
+    <div class="tooltip">
+      <button id="health-copy-button">
+        <span class="tooltiptext" id="healthtooltip">Copy to clipboard</span>
+        Copy command
+      </button>
+    </div>
+  
+    <button id="kill-monster">Kill Monster</button>
+    <textarea id="health-command-output" readonly style="width: 100%; height: 50px; margin-top: 10px;"></textarea>
+    <div class="tooltip">
+      <button id="kill-copy-button">
+        <span class="tooltiptext" id="killtooltip">Copy to clipboard</span>
+        Copy command
+      </button>
+    </div>
+  </div>
+  
+  <div id="combat-options" class="tab-content">
+    <div class="compact-container">
+      <div class="label-group">
+        <label for="combat-monster-name">Monster Name:</label>
+        <label class="combat-position-label">Position</label>
+      </div>
+
+      <div class="input-group">
+        <input type="text" id="combat-monster-name" placeholder="Enter Monster Name" />
+    
+        <input 
+          type="number" 
+          id="combat-position-number" 
+          placeholder="#" 
+          style="width: 50px; text-align: center;" />
+      </div>
+    </div>
+  
+    <div id="attack-table">
+      <p>Attacks will appear here.</p>
+    </div>
+
+    <label for="attack-target">Target Name:</label>
+    <input type="text" id="attack-target" />
+
+    <label>Attack Roll Options:</label>
+    <div class="radio-group">
+      <input type="radio" id="default" name="attack-roll" value="default" checked />
+      <label for="default">Default</label>
+
+      <input type="radio" id="advantage" name="attack-roll" value="advantage" />
+      <label for="advantage">Advantage</label>
+
+      <input type="radio" id="disadvantage" name="attack-roll" value="disadvantage" />
+      <label for="disadvantage">Disadvantage</label>
+    </div>
+
+    <button id="generate-attack-command">Generate Attack Command</button>
+    <textarea id="attack-command-output" readonly></textarea>
+
+  <script src="popup.js"></script>
+</body>
+</html>
