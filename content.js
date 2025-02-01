@@ -28,4 +28,14 @@
   };
 
   addButton();
-})();
+})
+const extractedAttacks = new Set();
+
+document.querySelectorAll('[data-rollaction]').forEach((element) => {
+  const attackName = element.getAttribute('data-rollaction');
+  if (attackName) extractedAttacks.add(attackName);
+});
+
+// Send extracted attack names to the background script
+chrome.runtime.sendMessage({ type: "monsterAttacks", data: Array.from(extractedAttacks) });
+

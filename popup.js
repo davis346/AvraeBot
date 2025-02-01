@@ -272,4 +272,21 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   createButtons(saveButtonsContainer, saves, "!ms");
+
+  chrome.storage.local.get("monsterAttacks", (data) => {
+    const attackList = document.getElementById("attack-list");
+    attackList.innerHTML = ""; 
+  
+    if (data.monsterAttacks) {
+      data.monsterAttacks.forEach((attackName) => {
+        const attackElement = document.createElement("div");
+        attackElement.classList.add("attack-item");
+        attackElement.innerHTML = `<strong>${attackName}</strong>`;
+        attackList.appendChild(attackElement);
+      });
+    } else {
+      attackList.innerHTML = "<p>No attacks found.</p>";
+    }
+  });
+  
 });
