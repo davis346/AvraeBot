@@ -1,5 +1,4 @@
 document.addEventListener("DOMContentLoaded", () => {
-  // Tabs functionality
   const tabs = document.querySelectorAll(".tab");
   const tabContents = document.querySelectorAll(".tab-content");
 
@@ -22,13 +21,13 @@ document.addEventListener("DOMContentLoaded", () => {
 
   chrome.storage.local.get("monsterName", (data) => {
     if (data.monsterName) {
+      storedMonsterName = data.monsterName;
       monsterNameInput.value = data.monsterName;
       healthMonsterName.value = data.monsterName;
-      combatMonsterName.value = data.monsterName;
+      skillMonsterName.value = data.monsterName;
     }
   });
 
-  // Collapsible "Modify Stats" functionality
   const modifyStatsButton = document.getElementById("modify-stats-button");
   const statsOptions = document.getElementById("stats-options");
 
@@ -40,7 +39,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Copy to clipboard functionality for different command outputs
   function setupCopyButton(copyButtonId, outputId, tooltipId) {
     const copyButton = document.getElementById(copyButtonId);
     const tooltip = document.getElementById(tooltipId);
@@ -63,8 +61,9 @@ document.addEventListener("DOMContentLoaded", () => {
   setupCopyButton("command-copy-button", "command-output", "commandtooltip");
   setupCopyButton("health-copy-button", "apply-health-output", "healthtooltip");
   setupCopyButton("kill-copy-button", "health-command-output", "killtooltip");
+  setupCopyButton("check-copy-button", "health-command-output", "checktooltip");
 
-  // Monster Generator Logic
+  let storedMonsterName;
   const generateCommandButton = document.getElementById("generate-command");
   const commandOutput = document.getElementById("command-output");
   const monsterNameInput = document.getElementById("monster-name");
@@ -85,7 +84,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (generateCommandButton) {
     generateCommandButton.addEventListener("click", () => {
-      const monsterName = monsterNameInput.value.trim();
+      const inputMonsterName = monsterNameInput.value.trim();
       const monsterCount = parseInt(monsterCountInput.value, 10);
       const hpOption = hpOptionSelect.value;
       const manualHp = manualHpInput.value.trim();
@@ -95,9 +94,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const advantage = advantageCheckbox.checked;
       const disadvantage = disadvantageCheckbox.checked;
 
-      let command = monsterCount > 1
-        ? `!madd "${monsterName}#" -n ${monsterCount}`
-        : `!madd "${monsterName}"`;
+      let command = `!madd "${storedMonsterName}"`;
+
+      command += monsterCount > 1
+        ? ` -name "${inputMonsterName}#" -n ${monsterCount}`
+        : ` -name "${inputMonsterName}"`;
 
       if (hpOption === "rollhp") command += " -rollhp";
       if (hpOption === "manual" && manualHp) command += ` -hp ${manualHp}`;
@@ -106,7 +107,7 @@ document.addEventListener("DOMContentLoaded", () => {
       if (initiativeBonus) command += ` -b ${initiativeBonus}`;
       if (advantage) command += " adv";
       if (disadvantage) command += " dis";
-
+  
       commandOutput.value = command;
     });
   }
@@ -122,12 +123,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (applyHealthButton) {
     applyHealthButton.addEventListener("click", () => {
-      const hmonsterName = healthMonsterName.value.trim();
+      const monsterName = healthMonsterName.value.trim();
       const position = healthPositionNumber.value ? `#${healthPositionNumber.value}` : "";
       const fullMonsterName = `${monsterName}${position}`;
       const hpValue = healthValueInput.value.trim();
 
-      if (!hmonsterName) {
+      if (!monsterName) {
         applyHealthOutput.value = "Error: Please enter a monster name.";
         return;
       }
@@ -145,7 +146,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  // Kill Monster Command
   const killMonsterButton = document.getElementById("kill-monster");
   const healthCommandOutput = document.getElementById("health-command-output");
 
@@ -161,50 +161,65 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
-  const combatMonsterName = document.getElementById("combat-monster-name");
-  const combatOptionsTab = document.getElementById("combat-options");
-  const attackTable = document.getElementById("attack-table");
-  const targetInput = document.getElementById("attack-target");
-  const attackCommandOutput = document.getElementById("attack-command-output");
+  const skillMonsterName = document.getElementById("skill-monster-name");
+  const skillPositionNumber = document.getElementById("skill-position-number");
+  const skillButtonsContainer = document.getElementById("skill-buttons");
+  const saveButtonsContainer = document.getElementById("save-buttons");
+  const skillCommandOutput = document.getElementById("skill-command-output");
 
-  if (!combatOptionsTab || !attackTable) {
-    console.error("Combat options or attack table not found.");
-    return;
+  const skills = ["Athletics", "Acrobatics", "Sleight of Hand", "Stealth", "Arcana", "History", "Investigation", "Nature", "Religion", "Animal Handling", "Insight", "Medicine", "Perception", "Survival", "Deception", "Intimidation", "Performance", "Persuasion"];
+  const saves = ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"];
+
+  function createButtons(container, options, commandPrefix) {
+    container.innerHTML = "";
+    container.classList.add("button-grid");
+  
+    options.forEach(option => {
+      const button = document.createElement("button");
+      button.textContent = option;
+      button.classList.add(commandPrefix === "!ms" ? "save-button" : "skill-button");
+  
+      button.addEventListener("click", () => generateCommand(commandPrefix, option));
+      
+      container.appendChild(button);
+    });
   }
 
-  // Retrieve stored monster name and attacks
-  chrome.storage.local.get(["monsterName", "monsterAttacks"], (data) => {
-    if (!data.monsterName || !data.monsterAttacks) {
-      console.error("Monster data not found in storage.");
+  function generateCommand(prefix, checkName) {
+    const monsterName = skillMonsterName.value.trim();
+    const position = skillPositionNumber.value ? `#${skillPositionNumber.value}` : "";
+    const fullMonsterName = `${monsterName}${position}`;
+    const rollType = document.querySelector('input[name="roll-type"]:checked').value;
+    const dcValue = document.getElementById("set-dc").value.trim();
+    const rerollValue = document.getElementById("rerolls").value.trim();
+    const bonusValue = document.getElementById("add-bonus").value.trim();
+  
+    if (!monsterName) {
+      skillCommandOutput.value = "Error: Please enter a monster name.";
       return;
     }
+  
+    let rollFlag = rollType === "advantage" ? " -adv" : rollType === "disadvantage" ? " -dis" : "";
+    let dcFlag = dcValue ? ` -dc ${dcValue}` : "";
+    let rrFlag = rerollValue ? ` -rr ${rerollValue}` : "";
+    let bonusFlag = bonusValue ? ` -b ${bonusValue}` : "";
+  
+    const command = `${prefix} "${fullMonsterName}" ${checkName.toLowerCase()}${rollFlag}${dcFlag}${rrFlag}${bonusFlag}`;
+    skillCommandOutput.value = command;
+  }
 
-    combatMonsterName.value = data.monsterName; // Pre-fill monster name
-
-    if (data.monsterAttacks.length === 0) {
-      attackTable.innerHTML = "<p>No attacks found.</p>";
-      return;
-    }
-
-    attackTable.innerHTML = ""; // Clear any previous content
-
-    data.monsterAttacks.forEach((attack) => {
-      const attackButton = document.createElement("button");
-      attackButton.textContent = attack;
-      attackButton.classList.add("attack-button");
-      attackButton.addEventListener("click", () => {
-        const target = targetInput.value.trim() || "Unknown Target";
-        const rollOption = document.querySelector('input[name="attack-roll"]:checked').value;
-        let rollFlag = "";
-
-        if (rollOption === "advantage") rollFlag = " -adv";
-        else if (rollOption === "disadvantage") rollFlag = " -dis";
-
-        const command = `!ma "${data.monsterName}" "${attack}" -t "${target}"${rollFlag}`;
-        attackCommandOutput.value = command;
-      });
-
-      attackTable.appendChild(attackButton);
-    });
+  document.getElementById("check-mode").addEventListener("change", () => {
+    skillButtonsContainer.style.display = "grid";
+    saveButtonsContainer.style.display = "none";
+    skillButtonsContainer.classList.add("button-grid");
   });
+  
+  document.getElementById("save-mode").addEventListener("change", () => {
+    skillButtonsContainer.style.display = "none";
+    saveButtonsContainer.style.display = "grid";
+    saveButtonsContainer.classList.add("button-grid");
+  });
+
+  createButtons(skillButtonsContainer, skills, "!mc");
+  createButtons(saveButtonsContainer, saves, "!ms");
 });
