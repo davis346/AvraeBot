@@ -12,7 +12,7 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
           url: "popup.html",
           type: "popup",
           width: 400,
-          height: 800,
+          height: 850,
           left: Math.max(0, screenWidth - 950),
           top: 125
         });

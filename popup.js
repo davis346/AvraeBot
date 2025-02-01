@@ -13,7 +13,6 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  // Default active tab
   const defaultActiveTab = document.querySelector(".tab.active");
   if (defaultActiveTab) {
     defaultActiveTab.click();
@@ -23,8 +22,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (data.monsterName) {
       storedMonsterName = data.monsterName;
       monsterNameInput.value = data.monsterName;
-      healthMonsterName.value = data.monsterName;
-      skillMonsterName.value = data.monsterName;
     }
   });
 
@@ -61,12 +58,51 @@ document.addEventListener("DOMContentLoaded", () => {
   setupCopyButton("command-copy-button", "command-output", "commandtooltip");
   setupCopyButton("health-copy-button", "apply-health-output", "healthtooltip");
   setupCopyButton("kill-copy-button", "health-command-output", "killtooltip");
-  setupCopyButton("check-copy-button", "health-command-output", "checktooltip");
+  setupCopyButton("skill-copy-button", "skill-command-output", "skilltooltip");
 
-  let storedMonsterName;
+  const monsterNameFields = document.querySelectorAll('[id="monster-name"]');
+  const positionNumberFields = document.querySelectorAll('[id="position-number"]');
+
+  function syncField(fields, key) {
+    return function (event) {
+      const newValue = event.target.value;
+      fields.forEach(field => {
+        if (field !== event.target) {
+          field.value = newValue;
+        }
+      });
+      chrome.storage.local.set({ [key]: newValue });
+    };
+  }
+
+  // Sync Monster Name
+  const syncMonsterName = syncField(monsterNameFields, "monsterName");
+  monsterNameFields.forEach(field => field.addEventListener("input", syncMonsterName));
+  chrome.storage.local.get("monsterName", (data) => {
+    if (data.monsterName) monsterNameFields.forEach(field => field.value = data.monsterName);
+  });
+
+  // Sync Position Number
+  const syncPositionNumber = syncField(positionNumberFields, "positionNumber");
+  positionNumberFields.forEach(field => field.addEventListener("input", syncPositionNumber));
+  chrome.storage.local.get("positionNumber", (data) => {
+    positionNumberFields.forEach(field => {
+      field.value = data.positionNumber || "";
+    });
+  });
+  
+
+  function getMonsterName() {
+    const nameInput = document.querySelector('[id="monster-name"]');
+    return nameInput ? nameInput.value.trim() : "";
+  }
+
+  function getPositionNumber() {
+    const positionInput = document.querySelector('[id="position-number"]');
+    return positionInput ? positionInput.value.trim() : "";
+  }
   const generateCommandButton = document.getElementById("generate-command");
   const commandOutput = document.getElementById("command-output");
-  const monsterNameInput = document.getElementById("monster-name");
   const monsterCountInput = document.getElementById("monster-count");
   const hpOptionSelect = document.getElementById("hp-option");
   const manualHpInput = document.getElementById("manual-hp");
@@ -84,7 +120,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (generateCommandButton) {
     generateCommandButton.addEventListener("click", () => {
-      const inputMonsterName = monsterNameInput.value.trim();
+      const monsterName = getMonsterName();
       const monsterCount = parseInt(monsterCountInput.value, 10);
       const hpOption = hpOptionSelect.value;
       const manualHp = manualHpInput.value.trim();
@@ -94,11 +130,11 @@ document.addEventListener("DOMContentLoaded", () => {
       const advantage = advantageCheckbox.checked;
       const disadvantage = disadvantageCheckbox.checked;
 
-      let command = `!madd "${storedMonsterName}"`;
+      let command = `!i madd "${storedMonsterName}"`;
 
       command += monsterCount > 1
-        ? ` -name "${inputMonsterName}#" -n ${monsterCount}`
-        : ` -name "${inputMonsterName}"`;
+        ? ` -name "${monsterName}#" -n ${monsterCount}`
+        : ` -name "${monsterName}"`;
 
       if (hpOption === "rollhp") command += " -rollhp";
       if (hpOption === "manual" && manualHp) command += ` -hp ${manualHp}`;
@@ -107,25 +143,21 @@ document.addEventListener("DOMContentLoaded", () => {
       if (initiativeBonus) command += ` -b ${initiativeBonus}`;
       if (advantage) command += " adv";
       if (disadvantage) command += " dis";
-  
+
       commandOutput.value = command;
     });
   }
-
-  // Apply Health Command Generation
-  const healthMonsterName = document.getElementById("health-monster-name");
-  const healthPositionNumber = document.getElementById("health-position-number");
+  
   const applyHealthButton = document.getElementById("apply-health");
   const applyHealthOutput = document.getElementById("apply-health-output");
   const healRadio = document.getElementById("heal-radio");
-  const damageRadio = document.getElementById("damage-radio");
   const healthValueInput = document.getElementById("hp-value");
 
   if (applyHealthButton) {
     applyHealthButton.addEventListener("click", () => {
-      const monsterName = healthMonsterName.value.trim();
-      const position = healthPositionNumber.value ? `#${healthPositionNumber.value}` : "";
-      const fullMonsterName = `${monsterName}${position}`;
+      const monsterName = getMonsterName();
+      const position = getPositionNumber();
+      const fullMonsterName = position ? `${monsterName}${position}` : monsterName;
       const hpValue = healthValueInput.value.trim();
 
       if (!monsterName) {
@@ -151,21 +183,26 @@ document.addEventListener("DOMContentLoaded", () => {
 
   if (killMonsterButton) {
     killMonsterButton.addEventListener("click", () => {
-      const monsterName = healthMonsterName.value.trim();
-      const position = healthPositionNumber.value ? `#${healthPositionNumber.value}` : "";
-      const fullMonsterName = `${monsterName}${position}`;
-
-      healthCommandOutput.value = monsterName 
-        ? `!init remove "${fullMonsterName}"` 
-        : "Error: Please enter a monster name.";
+      const monsterName = getMonsterName();
+      const position = getPositionNumber();
+      const fullMonsterName = position ? `${monsterName}${position}` : monsterName;
+  
+      if (!monsterName) {
+        healthCommandOutput.value = "Error: Please enter a monster name.";
+        return;
+      }
+  
+      healthCommandOutput.value = `!i remove "${fullMonsterName}"`;
     });
   }
+  
 
-  const skillMonsterName = document.getElementById("skill-monster-name");
-  const skillPositionNumber = document.getElementById("skill-position-number");
   const skillButtonsContainer = document.getElementById("skill-buttons");
   const saveButtonsContainer = document.getElementById("save-buttons");
   const skillCommandOutput = document.getElementById("skill-command-output");
+  const generateButton = document.getElementById("generate-skill-command");
+
+  let selectedSkill = null;
 
   const skills = ["Athletics", "Acrobatics", "Sleight of Hand", "Stealth", "Arcana", "History", "Investigation", "Nature", "Religion", "Animal Handling", "Insight", "Medicine", "Perception", "Survival", "Deception", "Intimidation", "Performance", "Persuasion"];
   const saves = ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"];
@@ -179,16 +216,41 @@ document.addEventListener("DOMContentLoaded", () => {
       button.textContent = option;
       button.classList.add(commandPrefix === "!ms" ? "save-button" : "skill-button");
   
-      button.addEventListener("click", () => generateCommand(commandPrefix, option));
+      button.addEventListener("click", () => {
+        if (selectedSkill) {
+          selectedSkill.classList.remove("selected");
+        }
+        selectedSkill = button;
+        button.classList.add("selected");
+      });
       
       container.appendChild(button);
     });
   }
 
-  function generateCommand(prefix, checkName) {
-    const monsterName = skillMonsterName.value.trim();
-    const position = skillPositionNumber.value ? `#${skillPositionNumber.value}` : "";
-    const fullMonsterName = `${monsterName}${position}`;
+  document.getElementById("check-mode").addEventListener("change", () => {
+    skillButtonsContainer.style.display = "grid";
+    saveButtonsContainer.style.display = "none";
+    createButtons(skillButtonsContainer, skills, "!mc");
+  });
+
+  document.getElementById("save-mode").addEventListener("change", () => {
+    skillButtonsContainer.style.display = "none";
+    saveButtonsContainer.style.display = "grid";
+    createButtons(saveButtonsContainer, saves, "!ms");
+  });
+
+  generateButton.addEventListener("click", () => {
+    if (!selectedSkill) {
+      skillCommandOutput.value = "Please select a skill or save.";
+      return;
+    }
+
+    const prefix = document.getElementById("check-mode").checked ? "!mc" : "!ms";
+    const option = selectedSkill.textContent;
+    const monsterName = getMonsterName();
+    const position = getPositionNumber();
+    const fullMonsterName = position ? `${monsterName}${position}` : monsterName;
     const rollType = document.querySelector('input[name="roll-type"]:checked').value;
     const dcValue = document.getElementById("set-dc").value.trim();
     const rerollValue = document.getElementById("rerolls").value.trim();
@@ -199,27 +261,15 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
   
-    let rollFlag = rollType === "advantage" ? " -adv" : rollType === "disadvantage" ? " -dis" : "";
+    let rollFlag = rollType === "advantage" ? " adv" : rollType === "disadvantage" ? " dis" : "";
     let dcFlag = dcValue ? ` -dc ${dcValue}` : "";
     let rrFlag = rerollValue ? ` -rr ${rerollValue}` : "";
     let bonusFlag = bonusValue ? ` -b ${bonusValue}` : "";
+    let title = ` -title "${fullMonsterName} makes ${option} ${prefix === '!mc' ? 'Skill Check' : 'Saving Throw'}"`;
   
-    const command = `${prefix} "${fullMonsterName}" ${checkName.toLowerCase()}${rollFlag}${dcFlag}${rrFlag}${bonusFlag}`;
+    const command = `${prefix} "${storedMonsterName}" ${option.toLowerCase()}${rollFlag}${dcFlag}${rrFlag}${bonusFlag}${title}`;
     skillCommandOutput.value = command;
-  }
-
-  document.getElementById("check-mode").addEventListener("change", () => {
-    skillButtonsContainer.style.display = "grid";
-    saveButtonsContainer.style.display = "none";
-    skillButtonsContainer.classList.add("button-grid");
-  });
-  
-  document.getElementById("save-mode").addEventListener("change", () => {
-    skillButtonsContainer.style.display = "none";
-    saveButtonsContainer.style.display = "grid";
-    saveButtonsContainer.classList.add("button-grid");
   });
 
-  createButtons(skillButtonsContainer, skills, "!mc");
   createButtons(saveButtonsContainer, saves, "!ms");
 });

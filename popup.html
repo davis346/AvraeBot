@@ -56,11 +56,11 @@
       white-space: nowrap;
     }
 
-  .compact-input input {
+    .compact-input input {
       width: 50px;
     }
 
-    #health-monster-name, #skill-monster-name {
+    #monster-name {
       width: 85%;
     }
 
@@ -209,6 +209,10 @@
     .skill-button:hover, .save-button:hover {
       background-color: #0056b3;
     }
+
+    .selected {
+      background-color: gray !important;
+    }
   </style>
 </head>
 <body>
@@ -226,7 +230,7 @@
 
     <div class="compact-input">
       <label for="monster-count">Number of Monsters:</label>
-      <input type="number" id="monster-count" value="1" min="1" />
+      <input type="number" id="monster-count" min="1" />
   </div>
 
     <label for="hp-option">HP Options:</label>
@@ -275,7 +279,7 @@
     
 
     <button id="generate-command">Generate Command</button>
-    <textarea id="command-output" readonly style="width: 100%; height: 50px;"></textarea>
+    <textarea id="command-output" style="width: 100%; height: 50px;"></textarea>
     <div class="tooltip">
       <button id="command-copy-button">
         <span class="tooltiptext" id="commandtooltip">Copy to clipboard</span>
@@ -287,16 +291,16 @@
   <div id="health-options" class="tab-content">
     <div class="compact-container">
       <div class="label-group">
-        <label for="health-monster-name">Monster Name:</label>
-        <label class="health-position-label">Position</label>
+        <label for="monster-name">Monster Name:</label>
+        <label class="position-label">Position</label>
       </div>
     
       <div class="input-group">
-        <input type="text" id="health-monster-name" placeholder="Enter Monster Name" />
+        <input type="text" id="monster-name" placeholder="Enter Monster Name" />
     
         <input 
           type="number" 
-          id="health-position-number" 
+          id="position-number" 
           placeholder="#" 
           style="width: 50px; text-align: center;" />
       </div>
@@ -317,7 +321,7 @@
     </div>
     
     <button id="apply-health">Apply Health</button>
-    <textarea id="apply-health-output" readonly></textarea>
+    <textarea id="apply-health-output"></textarea>
     <div class="tooltip">
       <button id="health-copy-button">
         <span class="tooltiptext" id="healthtooltip">Copy to clipboard</span>
@@ -326,7 +330,7 @@
     </div>
   
     <button id="kill-monster">Kill Monster</button>
-    <textarea id="health-command-output" readonly style="width: 100%; height: 50px; margin-top: 10px;"></textarea>
+    <textarea id="health-command-output" style="width: 100%; height: 50px; margin-top: 10px;"></textarea>
     <div class="tooltip">
       <button id="kill-copy-button">
         <span class="tooltiptext" id="killtooltip">Copy to clipboard</span>
@@ -336,14 +340,19 @@
   </div>
   
   <div id="skill-checks" class="tab-content">
-    <label for="skill-monster-name">Monster Name:</label>
-    <input type="text" id="skill-monster-name" />
-    <input 
-          type="number" 
-          id="skill-position-number" 
-          placeholder="#" 
-          style="width: 50px; text-align: center;" />
+    <div class="label-group">
+      <label for="monster-name">Monster Name:</label>
+      <label class="position-label">Position</label>
+    </div>
+    <div class="input-group">
+      <input type="text" id="monster-name" placeholder="Enter Monster Name" />
 
+      <input 
+            type="number" 
+            id="position-number" 
+            placeholder="#" 
+            style="width: 50px; text-align: center;" />
+      </div>
     <div class="inline-group">
       <div class="compact-input">
         <label for="rerolls">Rerolls:</label>
@@ -358,8 +367,8 @@
       <label for="check-mode">Skill Check</label>
     </div>
 
-    <div id="save-buttons"></div>
-    <div id="skill-buttons" style="display: none;"></div>
+    <div id="save-buttons" class="button-grid"></div>
+    <div id="skill-buttons" class="button-grid" style="display: none;"></div>
 
     <div class="inline-group">
       <label>Roll Options:</label>
@@ -385,10 +394,11 @@
       </div>
     </div>
 
-    <textarea id="skill-command-output" readonly></textarea>
+    <button id="generate-skill-command">Generate Command</button>
+    <textarea id="skill-command-output"></textarea>
     <div class="tooltip">
-      <button id="check-copy-button">
-        <span class="tooltiptext" id="checktooltip">Copy to clipboard</span>
+      <button id="skill-copy-button">
+        <span class="tooltiptext" id="skilltooltip">Copy to clipboard</span>
         Copy command
       </button>
     </div>
