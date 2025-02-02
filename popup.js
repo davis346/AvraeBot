@@ -18,10 +18,12 @@ document.addEventListener("DOMContentLoaded", () => {
     defaultActiveTab.click();
   }
 
+  const storedMonsterNameDisplay = document.getElementById("stored-monster-name-display");
+
   chrome.storage.local.get("monsterName", (data) => {
     if (data.monsterName) {
       storedMonsterName = data.monsterName;
-      monsterNameInput.value = data.monsterName;
+      storedMonsterNameDisplay.innerHTML = `<strong>Base Monster:</strong> ${data.monsterName}`;
     }
   });
 
@@ -310,9 +312,9 @@ document.addEventListener("DOMContentLoaded", () => {
     const position = getPositionNumber();
     const fullMonsterName = position ? `${monsterName}${position}` : monsterName;
     const rollType = document.querySelector('input[name="roll-type"]:checked').value;
-    const dcValue = document.getElementById("set-dc").value.trim();
-    const rerollValue = document.getElementById("rerolls").value.trim();
-    const bonusValue = document.getElementById("add-bonus").value.trim();
+    const skillDcValue = document.getElementById("skill-dc").value.trim();
+    const skillRerollValue = document.getElementById("skill-rerolls").value.trim();
+    const skillBonusValue = document.getElementById("skill-bonus").value.trim();
   
     if (!monsterName) {
       skillCommandOutput.value = "Error: Please enter a monster name.";
@@ -320,9 +322,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   
     let rollFlag = rollType === "advantage" ? " adv" : rollType === "disadvantage" ? " dis" : "";
-    let dcFlag = dcValue ? ` -dc ${dcValue}` : "";
-    let rrFlag = rerollValue ? ` -rr ${rerollValue}` : "";
-    let bonusFlag = bonusValue ? ` -b ${bonusValue}` : "";
+    let dcFlag = skillDcValue ? ` -dc ${skillDcValue}` : "";
+    let rrFlag = skillRerollValue ? ` -rr ${skillRerollValue}` : "";
+    let bonusFlag = skillBonusValue ? ` -b ${skillBonusValue}` : "";
     let title = ` -title "${fullMonsterName} makes ${option} ${prefix === '!mc' ? 'Skill Check' : 'Saving Throw'}"`;
   
     const command = `${prefix} "${storedMonsterName}" ${option.toLowerCase()}${rollFlag}${dcFlag}${rrFlag}${bonusFlag}${title}`;
@@ -343,6 +345,7 @@ document.addEventListener("DOMContentLoaded", () => {
   attackModeRadio.addEventListener("change", () => {
     attackButtonsContainer.style.display = "grid";
     spellButtonsContainer.style.display = "none";
+    actionType = "attack";
   
     if (selectedAction.value) {
       selectedAction.value.classList.remove("selected");
@@ -354,6 +357,7 @@ document.addEventListener("DOMContentLoaded", () => {
   spellModeRadio.addEventListener("change", () => {
     attackButtonsContainer.style.display = "none";
     spellButtonsContainer.style.display = "grid";
+    actionType = "spell";
   
     if (selectedAction.value) {
       selectedAction.value.classList.remove("selected");
@@ -417,9 +421,11 @@ document.addEventListener("DOMContentLoaded", () => {
     const fullMonsterName = position ? `${monsterName}${position}` : monsterName;
     const actionName = selectedAction.value.textContent;
     const target = document.getElementById("attack-target").value.trim();
-    const rerolls = document.getElementById("attack-rerolls").value.trim();
-    const bonus = document.getElementById("attack-bonus").value.trim();
+    const attackRerolls = document.getElementById("attack-rerolls").value.trim();
+    const attackDcValue = document.getElementById("attack-dc").value.trim();
+    const attackBonus = document.getElementById("attack-bonus").value.trim();
     const rollType = document.querySelector('input[name="attack-roll-type"]:checked').value;
+    const title = ` -title "${fullMonsterName} uses ${actionName}"`;
 
     if (!monsterName) {
       actionCommandOutput.value = "Error: Please enter a monster name.";
@@ -427,12 +433,14 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     let commandPrefix = actionType === "attack" ? "!ma" : "!mcast";
-    let command = `${commandPrefix} "${fullMonsterName}" "${actionName}"`;
+    let command = `${commandPrefix} "${storedMonsterName}" "${actionName}"`;
     if (target) command += ` -t "${target}"`;
-    if (rerolls) command += ` -rr ${rerolls}`;
-    if (bonus) command += ` -b ${bonus}`;
-    if (rollType === "advantage") command += " adv";
-    if (rollType === "disadvantage") command += " dis";
+    if (attackRerolls) command += ` -rr ${attackRerolls}`;
+    if (attackDcValue) command += ` -dc ${attackDcValue}`;
+    if (attackBonus) command += ` -b ${attackBonus}`;
+    if (rollType === "advantage") command += " adv sadv";
+    if (rollType === "disadvantage") command += " dis sdis";
+    command += title;
 
     actionCommandOutput.value = command;
   });

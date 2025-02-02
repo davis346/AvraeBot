@@ -225,6 +225,7 @@
 </head>
 <body>
   <h3>Avrae Command Generator</h3>
+  <h4 id="stored-monster-name-display"><strong>Base Monster:</strong> Loading...</h4>
 
   <div class="tab-container">
     <div class="tab active" data-target="monster-generator">Monster Generator</div>
@@ -365,16 +366,17 @@
       </div>
     <div class="inline-group">
       <div class="compact-input">
-        <label for="rerolls">Rerolls:</label>
-        <input type="number" id="rerolls" min="1" />
+        <label for="skill-rerolls">Rerolls:</label>
+        <input type="number" id="skill-rerolls" min="1" />
       </div>
-
-      <label style="margin-left: 20px;">Select Mode:</label>
-      <input type="radio" id="save-mode" name="skill-mode" value="save" checked />
-      <label for="save-mode">Saving Throw</label>
-
-      <input type="radio" id="check-mode" name="skill-mode" value="check" />
-      <label for="check-mode">Skill Check</label>
+      <div class="compact-input">
+        <label for="skill-dc">Set DC:</label>
+        <input type="number" id="skill-dc" />
+      </div>
+      <div class="compact-input">
+        <label for="skill-bonus">Add Bonus:</label>
+        <input type="number" id="skill-bonus" />
+      </div>
     </div>
 
     <div class="inline-group">
@@ -389,20 +391,15 @@
       <label for="skill-roll-dis">Disadvantage</label>
     </div>
 
+    <div class="inline-group">
+      <label style="margin-left: 20px;">Select Mode:</label>
+      <input type="radio" id="save-mode" name="skill-mode" value="save" checked />
+      <label for="save-mode">Saving Throw</label>
+      <input type="radio" id="check-mode" name="skill-mode" value="check" />
+      <label for="check-mode">Skill Check</label>
+    </div>
     <div id="save-buttons" class="button-grid"></div>
     <div id="skill-buttons" class="button-grid" style="display: none;"></div>
-
-    <div class="inline-group">
-      <div class="compact-input">
-        <label for="set-dc">Set DC:</label>
-        <input type="number" id="set-dc" />
-      </div>
-  
-      <div class="compact-input">
-        <label for="add-bonus">Add Bonus:</label>
-        <input type="number" id="add-bonus" />
-      </div>
-    </div>
 
     <button id="generate-skill-command">Generate Command</button>
     <textarea id="skill-command-output"></textarea>
@@ -436,16 +433,14 @@
         <label for="attack-rerolls">Rerolls:</label>
         <input type="number" id="attack-rerolls" />
       </div>
-    
+      <div class="compact-input">
+        <label for="attack-dc">Set DC:</label>
+        <input type="number" id="attack-dc" />
+      </div>
       <div class="compact-input">
         <label for="attack-bonus">Bonus:</label>
         <input type="number" id="attack-bonus" />
       </div>
-
-      <input type="radio" id="attack-mode" name="action-mode" value="attack" checked />
-      <label for="attack-mode">Attacks</label>
-      <input type="radio" id="spell-mode" name="action-mode" value="spell" />
-      <label for="spell-mode">Spells</label>
     </div>
 
     <div class="inline-group">
@@ -465,6 +460,12 @@
       <input type="text" id="attack-target" />
     </div>
   
+    <div class="inline-group">
+      <input type="radio" id="attack-mode" name="action-mode" value="attack" checked />
+      <label for="attack-mode">Attacks</label>
+      <input type="radio" id="spell-mode" name="action-mode" value="spell" />
+      <label for="spell-mode">Spells</label>
+    </div>
     <div id="attack-buttons" class="button-grid"></div>
     <div id="spell-buttons" class="button-grid" style="display: none;"></div>
   
