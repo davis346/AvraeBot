@@ -28,7 +28,7 @@
   };
 
   addButton();
-})
+})();
 const extractedAttacks = new Set();
 
 document.querySelectorAll('[data-rollaction]').forEach((element) => {
@@ -39,3 +39,12 @@ document.querySelectorAll('[data-rollaction]').forEach((element) => {
 // Send extracted attack names to the background script
 chrome.runtime.sendMessage({ type: "monsterAttacks", data: Array.from(extractedAttacks) });
 
+const extractedSpells = new Set();
+
+document.querySelectorAll('a.spell-tooltip').forEach((element) => {
+  const spellName = element.textContent.trim();
+  if (spellName) extractedSpells.add(spellName);
+});
+
+// Send extracted spells to the background script
+chrome.runtime.sendMessage({ type: "monsterSpells", data: Array.from(extractedSpells) })

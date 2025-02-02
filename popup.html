@@ -60,6 +60,13 @@
       width: 50px;
     }
 
+    .flex-container {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      margin-bottom: 5px;
+    }
+
     #monster-name {
       width: 85%;
     }
@@ -189,13 +196,14 @@
       margin-bottom: 5px;
     }
 
-    .button-grid {
+    .button-grid, utilitiy-grid {
       display: grid;
       grid-template-columns: repeat(2, 1fr);
       gap: 5px;
+      margin-top: 10px;
     }
 
-    .skill-button, .save-button {
+    .skill-button, .save-button, .attack-button, .spell-button, .utility-button {
       width: 100%;
       padding: 8px;
       background-color: #007bff;
@@ -206,11 +214,11 @@
       text-align: center;
     }
 
-    .skill-button:hover, .save-button:hover {
+    .skill-button:hover, .save-button:hover, utility-button:hover, .attack-button:hover, .spell-button:hover {
       background-color: #0056b3;
     }
 
-    .selected {
+    .selected, .attack-button.selected, .spell-button.selected {
       background-color: gray !important;
     }
   </style>
@@ -222,7 +230,8 @@
     <div class="tab active" data-target="monster-generator">Monster Generator</div>
     <div class="tab" data-target="health-options">Health Options</div>
     <div class="tab" data-target="skill-checks">Skill & Saves</div>
-    <div class="tab" data-target="attacks-tab">Attacks</div>
+    <div class="tab" data-target="attacks-tab">Attacks & Spells</div>
+    <div class="tab" data-target="utility">Utility</div>
   </div>
 
   <div id="monster-generator" class="tab-content active">
@@ -264,15 +273,15 @@
     
       <div class="radio-group">
         <div class="radio-item">
-          <input type="radio" id="defaultinit" name="init" value="defaultinit" checked />
+          <input type="radio" id="init-default" name="init" value="defaultinit" checked />
           <label for="defaultinit">Default Initiative</label>
         </div>
         <div class="radio-item">
-          <input type="radio" id="advantage" name="init" value="advantage" />
+          <input type="radio" id="init-advantage" name="init" value="advantage" />
           <label for="advantage">Advantage Initiative</label>
         </div>
         <div class="radio-item">
-          <input type="radio" id="disadvantage" name="init" value="disadvantage" />
+          <input type="radio" id="init-disadvantage" name="init" value="disadvantage" />
           <label for="disadvantage">Disadvantage Initiative</label>
         </div>
       </div>
@@ -368,20 +377,20 @@
       <label for="check-mode">Skill Check</label>
     </div>
 
-    <div id="save-buttons" class="button-grid"></div>
-    <div id="skill-buttons" class="button-grid" style="display: none;"></div>
-
     <div class="inline-group">
       <label>Roll Options:</label>
-      <input type="radio" id="roll-default" name="roll-type" value="default" checked />
-      <label for="roll-default">Default</label>
+      <input type="radio" id="skill-roll-default" name="roll-type" value="default" checked />
+      <label for="skill-roll-default">Default</label>
 
-      <input type="radio" id="roll-adv" name="roll-type" value="advantage" />
-      <label for="roll-adv">Advantage</label>
+      <input type="radio" id="skill-roll-adv" name="roll-type" value="advantage" />
+      <label for="skill-roll-adv">Advantage</label>
 
-      <input type="radio" id="roll-dis" name="roll-type" value="disadvantage" />
-      <label for="roll-dis">Disadvantage</label>
+      <input type="radio" id="skill-roll-dis" name="roll-type" value="disadvantage" />
+      <label for="skill-roll-dis">Disadvantage</label>
     </div>
+
+    <div id="save-buttons" class="button-grid"></div>
+    <div id="skill-buttons" class="button-grid" style="display: none;"></div>
 
     <div class="inline-group">
       <div class="compact-input">
@@ -406,10 +415,85 @@
   </div>
 
   <div id="attacks-tab" class="tab-content">
-    <h4>Monster Attacks</h4>
-    <div id="attack-list">Loading...</div> <!-- Attacks will be dynamically added here -->
+    <div class="compact-container">
+      <div class="label-group">
+        <label for="monster-name">Monster Name:</label>
+        <label class="position-label">Position</label>
+      </div>
+      <div class="input-group">
+        <input type="text" id="monster-name" placeholder="Enter Monster Name" />
+    
+        <input 
+          type="number" 
+          id="position-number" 
+          placeholder="#" 
+          style="width: 50px; text-align: center;" />
+      </div>
+    </div>
+  
+    <div class="inline-group">
+      <div class="compact-input">
+        <label for="attack-rerolls">Rerolls:</label>
+        <input type="number" id="attack-rerolls" />
+      </div>
+    
+      <div class="compact-input">
+        <label for="attack-bonus">Bonus:</label>
+        <input type="number" id="attack-bonus" />
+      </div>
+
+      <input type="radio" id="attack-mode" name="action-mode" value="attack" checked />
+      <label for="attack-mode">Attacks</label>
+      <input type="radio" id="spell-mode" name="action-mode" value="spell" />
+      <label for="spell-mode">Spells</label>
+    </div>
+
+    <div class="inline-group">
+    <label>Roll Options:</label>
+        <input type="radio" id="attack-default" name="attack-roll-type" value="default" checked />
+        <label for="attack-normal">Default</label>
+
+        <input type="radio" id="attack-adv" name="attack-roll-type" value="advantage" />
+        <label for="attack-adv">Advantage</label>
+
+        <input type="radio" id="attack-dis" name="attack-roll-type" value="disadvantage" />
+        <label for="attack-dis">Disadvantage</label>
+    </div>
+
+    <div class="flex-container">
+      <label for="attack-target">Target:</label>
+      <input type="text" id="attack-target" />
+    </div>
+  
+    <div id="attack-buttons" class="button-grid"></div>
+    <div id="spell-buttons" class="button-grid" style="display: none;"></div>
+  
+    <button id="generate-action-command">Generate Action Command</button>
+    <textarea id="action-command-output"></textarea>
+    <div class="tooltip">
+      <button id="action-copy-button">
+        <span class="tooltiptext" id="actiontooltip">Copy to clipboard</span>
+        Copy command
+      </button>
+    </div>
   </div>
 
+  <div id="utility" class="tab-content">
+    <div class="utility-grid">
+      <button class="utility-button" data-command="!i begin">Begin Combat</button>
+      <button class="utility-button" data-command="!i list">List Init</button>
+      <button class="utility-button" data-command="!i n">Next Combatant</button>
+      <button class="utility-button" data-command="!i prev">Prev Combatant</button>
+      <button class="utility-button" data-command="!i end">End Combat</button>
+    </div>
+    <textarea id="utility-command-output" style="width: 100%; height: 40px; margin-top: 10px;"></textarea>
+    <div class="tooltip">
+      <button id="utility-copy-button">
+        <span class="tooltiptext" id="utilitytooltip">Copy to clipboard</span>
+        Copy command
+      </button>
+    </div>
+  </div>
   <script src="popup.js"></script>
 </body>
 </html>

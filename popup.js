@@ -59,6 +59,8 @@ document.addEventListener("DOMContentLoaded", () => {
   setupCopyButton("health-copy-button", "apply-health-output", "healthtooltip");
   setupCopyButton("kill-copy-button", "health-command-output", "killtooltip");
   setupCopyButton("skill-copy-button", "skill-command-output", "skilltooltip");
+  setupCopyButton("action-copy-button", "action-command-output", "actiontooltip");
+  setupCopyButton("utility-copy-button", "utility-command-output", "utilitytooltip");
 
   const monsterNameFields = document.querySelectorAll('[id="monster-name"]');
   const positionNumberFields = document.querySelectorAll('[id="position-number"]');
@@ -75,14 +77,12 @@ document.addEventListener("DOMContentLoaded", () => {
     };
   }
 
-  // Sync Monster Name
   const syncMonsterName = syncField(monsterNameFields, "monsterName");
   monsterNameFields.forEach(field => field.addEventListener("input", syncMonsterName));
   chrome.storage.local.get("monsterName", (data) => {
     if (data.monsterName) monsterNameFields.forEach(field => field.value = data.monsterName);
   });
 
-  // Sync Position Number
   const syncPositionNumber = syncField(positionNumberFields, "positionNumber");
   positionNumberFields.forEach(field => field.addEventListener("input", syncPositionNumber));
   chrome.storage.local.get("positionNumber", (data) => {
@@ -90,7 +90,53 @@ document.addEventListener("DOMContentLoaded", () => {
       field.value = data.positionNumber || "";
     });
   });
+
+  function setupButtonSelection(containerSelector, buttonClass, clearCallback, variableRef, relatedGroup) {
+    const container = document.querySelector(containerSelector);
+    if (!container) return;
   
+    container.addEventListener("click", (event) => {
+      if (event.target.classList.contains(buttonClass)) {
+        if (variableRef.value === event.target) {
+          event.target.classList.remove("selected");
+          variableRef.value = null;
+          clearCallback();
+        } else {
+          if (variableRef.value) variableRef.value.classList.remove("selected");
+          variableRef.value = event.target;
+          variableRef.value.classList.add("selected");
+        }
+      }
+    });
+  
+    relatedGroup.forEach((elementId) => {
+      document.getElementById(elementId)?.addEventListener("change", () => {
+        if (variableRef.value) {
+          variableRef.value.classList.remove("selected");
+          variableRef.value = null;
+          clearCallback();
+        }
+      });
+    });
+  }
+  
+  let selectedSkill = { value: null };
+  let selectedAction = { value: null };
+  
+  function clearSelectedSkill() {
+    selectedSkill.value = null;
+    document.getElementById("skill-command-output").value = "";
+  }
+  
+  function clearSelectedAction() {
+    selectedAction.value = null;
+    document.getElementById("action-command-output").value = "";
+  }
+  
+  setupButtonSelection("#skill-buttons", "skill-button", clearSelectedSkill, selectedSkill, ["save-mode"]);
+  setupButtonSelection("#save-buttons", "save-button", clearSelectedSkill, selectedSkill, ["check-mode"]);
+  setupButtonSelection("#attack-buttons", "attack-button", clearSelectedAction, selectedAction, ["spell-mode"]);
+  setupButtonSelection("#spell-buttons", "spell-button", clearSelectedAction, selectedAction, ["attack-mode"]);  
 
   function getMonsterName() {
     const nameInput = document.querySelector('[id="monster-name"]');
@@ -109,8 +155,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const groupNameInput = document.getElementById("group-name");
   const acInput = document.getElementById("ac");
   const initiativeBonusInput = document.getElementById("initiative-bonus");
-  const advantageCheckbox = document.getElementById("advantage");
-  const disadvantageCheckbox = document.getElementById("disadvantage");
+  const advantageCheckbox = document.getElementById("init-advantage");
+  const disadvantageCheckbox = document.getElementById("init-disadvantage");
 
   if (hpOptionSelect && manualHpInput) {
     hpOptionSelect.addEventListener("change", () => {
@@ -200,9 +246,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const skillButtonsContainer = document.getElementById("skill-buttons");
   const saveButtonsContainer = document.getElementById("save-buttons");
   const skillCommandOutput = document.getElementById("skill-command-output");
-  const generateButton = document.getElementById("generate-skill-command");
-
-  let selectedSkill = null;
+  const generateSkillButton = document.getElementById("generate-skill-command");
 
   const skills = ["Athletics", "Acrobatics", "Sleight of Hand", "Stealth", "Arcana", "History", "Investigation", "Nature", "Religion", "Animal Handling", "Insight", "Medicine", "Perception", "Survival", "Deception", "Intimidation", "Performance", "Persuasion"];
   const saves = ["Strength", "Dexterity", "Constitution", "Intelligence", "Wisdom", "Charisma"];
@@ -231,23 +275,37 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("check-mode").addEventListener("change", () => {
     skillButtonsContainer.style.display = "grid";
     saveButtonsContainer.style.display = "none";
+    
+    if (selectedSkill.value) {
+      selectedSkill.value.classList.remove("selected");
+      selectedSkill.value = null;
+      clearSelectedSkill();
+    }
+  
     createButtons(skillButtonsContainer, skills, "!mc");
   });
 
   document.getElementById("save-mode").addEventListener("change", () => {
     skillButtonsContainer.style.display = "none";
     saveButtonsContainer.style.display = "grid";
+  
+    if (selectedSkill.value) {
+      selectedSkill.value.classList.remove("selected");
+      selectedSkill.value = null;
+      clearSelectedSkill();
+    }
+  
     createButtons(saveButtonsContainer, saves, "!ms");
   });
 
-  generateButton.addEventListener("click", () => {
-    if (!selectedSkill) {
+  generateSkillButton.addEventListener("click", () => {
+    if (!selectedSkill.value) {
       skillCommandOutput.value = "Please select a skill or save.";
       return;
     }
 
     const prefix = document.getElementById("check-mode").checked ? "!mc" : "!ms";
-    const option = selectedSkill.textContent;
+    const option = selectedSkill.value.textContent;
     const monsterName = getMonsterName();
     const position = getPositionNumber();
     const fullMonsterName = position ? `${monsterName}${position}` : monsterName;
@@ -272,21 +330,120 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   createButtons(saveButtonsContainer, saves, "!ms");
-
-  chrome.storage.local.get("monsterAttacks", (data) => {
-    const attackList = document.getElementById("attack-list");
-    attackList.innerHTML = ""; 
   
-    if (data.monsterAttacks) {
-      data.monsterAttacks.forEach((attackName) => {
-        const attackElement = document.createElement("div");
-        attackElement.classList.add("attack-item");
-        attackElement.innerHTML = `<strong>${attackName}</strong>`;
-        attackList.appendChild(attackElement);
-      });
-    } else {
-      attackList.innerHTML = "<p>No attacks found.</p>";
+  const attackButtonsContainer = document.getElementById("attack-buttons");
+  const spellButtonsContainer = document.getElementById("spell-buttons");
+  const attackModeRadio = document.getElementById("attack-mode");
+  const spellModeRadio = document.getElementById("spell-mode");
+  const generateActionCommandButton = document.getElementById("generate-action-command");
+  const actionCommandOutput = document.getElementById("action-command-output");
+
+  let actionType = "attack";
+
+  attackModeRadio.addEventListener("change", () => {
+    attackButtonsContainer.style.display = "grid";
+    spellButtonsContainer.style.display = "none";
+  
+    if (selectedAction.value) {
+      selectedAction.value.classList.remove("selected");
+      selectedAction.value = null;
+      clearSelectedAction();
     }
   });
   
+  spellModeRadio.addEventListener("change", () => {
+    attackButtonsContainer.style.display = "none";
+    spellButtonsContainer.style.display = "grid";
+  
+    if (selectedAction.value) {
+      selectedAction.value.classList.remove("selected");
+      selectedAction.value = null;
+      clearSelectedAction();
+    }
+  });
+
+  chrome.storage.local.get("monsterAttacks", (data) => {
+    attackButtonsContainer.innerHTML = "";
+  
+    if (data.monsterAttacks && data.monsterAttacks.length > 0) {
+      data.monsterAttacks.forEach((attackName) => {
+        const button = document.createElement("button");
+        button.textContent = attackName;
+        button.classList.add("attack-button");
+  
+        button.addEventListener("click", () => {
+          if (selectedAction) selectedAction.classList.remove("selected");
+          selectedAction = button;
+          button.classList.add("selected");
+        });
+  
+        attackButtonsContainer.appendChild(button);
+      });
+    } else {
+      attackButtonsContainer.innerHTML = "<h3><strong>No attacks found.</strong></h3>";
+    }
+  });
+
+  chrome.storage.local.get("monsterSpells", (data) => {
+    spellButtonsContainer.innerHTML = "";
+
+    if (data.monsterSpells && data.monsterSpells.length > 0) {
+      data.monsterSpells.forEach((spellName) => {
+        const button = document.createElement("button");
+        button.textContent = spellName;
+        button.classList.add("spell-button");
+
+        button.addEventListener("click", () => {
+          if (selectedAction) selectedAction.classList.remove("selected");
+          selectedAction = button;
+          button.classList.add("selected");
+        });
+
+        spellButtonsContainer.appendChild(button);
+      });
+    } else {
+      spellButtonsContainer.innerHTML = "<h3><strong>No spells found.</strong><h3>";
+    }
+  });
+
+  generateActionCommandButton.addEventListener("click", () => {
+    if (!selectedAction.value) {
+      actionCommandOutput.value = "Error: Please select an attack or spell.";
+      return;
+    }
+
+    const monsterName = getMonsterName();
+    const position = getPositionNumber();
+    const fullMonsterName = position ? `${monsterName}${position}` : monsterName;
+    const actionName = selectedAction.value.textContent;
+    const target = document.getElementById("attack-target").value.trim();
+    const rerolls = document.getElementById("attack-rerolls").value.trim();
+    const bonus = document.getElementById("attack-bonus").value.trim();
+    const rollType = document.querySelector('input[name="attack-roll-type"]:checked').value;
+
+    if (!monsterName) {
+      actionCommandOutput.value = "Error: Please enter a monster name.";
+      return;
+    }
+
+    let commandPrefix = actionType === "attack" ? "!ma" : "!mcast";
+    let command = `${commandPrefix} "${fullMonsterName}" "${actionName}"`;
+    if (target) command += ` -t "${target}"`;
+    if (rerolls) command += ` -rr ${rerolls}`;
+    if (bonus) command += ` -b ${bonus}`;
+    if (rollType === "advantage") command += " adv";
+    if (rollType === "disadvantage") command += " dis";
+
+    actionCommandOutput.value = command;
+  });
+
+  const utilityButtons = document.querySelectorAll(".utility-button");
+  const utilityOutput = document.getElementById("utility-command-output");
+
+  utilityButtons.forEach((button) => {
+    button.addEventListener("click", () => {
+      const command = button.getAttribute("data-command");
+      utilityOutput.value = command;
+    });
+  });
 });

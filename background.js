@@ -29,4 +29,8 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     console.log("Received Monster Attacks:", message.data);
     chrome.storage.local.set({ monsterAttacks: message.data });
   }
+  if (message.type === "monsterSpells") {
+    console.log("Received Monster Spells:", message.data);
+    chrome.storage.local.set({ monsterSpells: message.data });
+  }
 });
