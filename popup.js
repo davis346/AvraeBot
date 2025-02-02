@@ -434,7 +434,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     let commandPrefix = actionType === "attack" ? "!ma" : "!mcast";
     let command = `${commandPrefix} "${storedMonsterName}" "${actionName}"`;
-    if (target) command += ` -t "${target}"`;
+
+    if (target) {
+      const targets = target.split(",").map(t => t.trim()).filter(t => t);
+      command += targets.map(target => ` -t "${target}"`).join("");
+    }
+
     if (attackRerolls) command += ` -rr ${attackRerolls}`;
     if (attackDcValue) command += ` -dc ${attackDcValue}`;
     if (attackBonus) command += ` -b ${attackBonus}`;
