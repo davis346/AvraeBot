@@ -20,10 +20,26 @@ Step 7. Click the button that says Avrae and see if it all works.
 
 ## Usage
 
+There are two useable windows in this extension: Character and Monster Command Generator
+
+Monster Command Generator
+
 Monster Generator Tab is used for adding monsters to the combat. You can change the name, add multiple monsters of the same type, and many other options when starting initiative.
 
 Health Options Tab allows you to heal or damage a monster during combat. There is also a kill monster command for when you want to take them out of initiative.
 
 Skills & Saves allows you to roll skill checks or saving throws for a monster. Simply choose either the saving throw or skill check option to allow the respective buttons appear. Each time you want to select a different check or save press the respective button. There is also a Reroll section if you need to do a check or save multiple times for the same monster. Setting a DC is another option that will allow the bot to tell you if the monster passed or failed.
 
-Attacks & Spells allows you to choose an attack or cast a spell in the monster's statblock. Similarly to other tabs you can reroll actions, set DCs, select disadvantage or advantage, and even choose a target. When inputing a target us a comma to seperate enemies. For example, Target: Orc, Gnoll, Goblin.
+Attacks & Spells allows you to choose an attack or cast a spell in the monster's statblock. Similarly to other tabs you can reroll actions, set DCs, select disadvantage or advantage, and even choose a target. When inputing a target use a comma to seperate enemies. For example, Target: Orc, Gnoll, Goblin.
+
+Utils has common commands you can generate to join, end, finish turn, etc.
+
+Character Command Generator
+
+Health Options Tab allows you to heal or damage a character during combat. There is also a command to roll death saving throws
+
+Skills & Saves allows you to roll skill checks or saving throws for a character. Simply choose either the saving throw or skill check option to allow the respective buttons appear. Each time you want to select a different check or save press the respective button. There is also a Reroll section if you need to do a check or save multiple times for the same character. Setting a DC is another option that will allow the bot to tell you if the character passed or failed.
+
+Attacks & Spells allows you to choose an attack or cast a spell in the character's statblock. Similarly to other tabs you can reroll actions, set DCs, select disadvantage or advantage, and even choose a target. When inputing a target use a comma to seperate enemies. For example, Target: Orc, Gnoll, Goblin.
+
+Utils has common commands you can generate to join, end, finish turn, etc.
