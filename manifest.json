@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "D&D Beyond to Avrae",
-  "version": "3.0",
+  "version": "4.0",
   "description": "Generate Avrae commands from D&D Beyond monster stat blocks.",
   "permissions": ["activeTab", "scripting", "storage", "system.display"],
   "host_permissions": ["https://*.dndbeyond.com/*"],
